@@ -68,7 +68,7 @@ from pydantic import BaseModel
 from typing import List
 
 def analyze_skill_gap(req):
-    from sklearn...   # ✅ lazy import
+    from sklearn.metrics.pairwise import cosine_similarity
 
 # -------------------------------
 # 1️⃣ SKILL TREE (STANDARD)
