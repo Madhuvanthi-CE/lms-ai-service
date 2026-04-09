@@ -118,7 +118,6 @@ print("🔥 MAIN FILE LOADED")
 import warnings
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from app.schemas.request import ...
 # Suppress warnings (optional)
 warnings.filterwarnings("ignore", message=".*resume_download.*")
 
