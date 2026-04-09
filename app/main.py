@@ -113,6 +113,7 @@
 #         raise HTTPException(status_code=500, detail=str(e))
 
 print("🚀 App starting...")
+print("🔥 MAIN FILE LOADED")
 
 import warnings
 from fastapi import FastAPI, HTTPException
