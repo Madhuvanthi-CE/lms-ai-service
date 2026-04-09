@@ -112,6 +112,8 @@
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
+print("🚀 App starting...")
+
 import warnings
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -165,6 +167,7 @@ app.add_middleware(
 # -------------------------------
 @app.get("/health")
 def health():
+    print("✅ Health endpoint called")
     return {"status": "ok", "version": "1.0"}
 
 
