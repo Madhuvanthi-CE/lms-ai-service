@@ -93,7 +93,7 @@
 
 #     return {"summary": final_summary}
 
-
+from transformers import pipeline
 import os
 
 def summarize_text(req):
