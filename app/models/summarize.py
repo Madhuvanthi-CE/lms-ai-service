@@ -93,9 +93,14 @@
 
 #     return {"summary": final_summary}
 
-from transformers import pipeline
-import whisper
+
 import os
+
+def summarize_text(req):
+    from transformers import pipeline   # ✅ lazy import
+    import whisper                      # ✅ lazy import
+
+    summarizer = pipeline("summarization")
 
 # 🔴 DO NOT LOAD HERE
 summarizer = None
