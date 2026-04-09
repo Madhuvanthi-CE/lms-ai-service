@@ -132,9 +132,14 @@
 
 #     return {"course_ids": recommendations}
 
-from sentence_transformers import SentenceTransformer
+
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+
+def recommend_courses(req):
+    from sentence_transformers import SentenceTransformer   # ✅ move here
+
+    model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # 🔹 Course metadata
 courses = {
