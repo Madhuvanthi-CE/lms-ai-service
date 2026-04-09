@@ -14,6 +14,11 @@ from pydantic import BaseModel
 from typing import List
 import random
 
+def generate_quiz(req):
+    from keybert import KeyBERT   # ✅ lazy import
+
+    kw_model = KeyBERT()
+
 class QuizRequest(BaseModel):
     session_transcript: str
 
