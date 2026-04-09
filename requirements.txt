@@ -11,3 +11,4 @@ faiss-cpu
 whisper
 spacy
 keybert
+tokenizers==0.15.2
