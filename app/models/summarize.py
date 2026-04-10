@@ -177,82 +177,120 @@
 
 #     return {"summary": final_summary}
 
+# import os
+
+# # 🔴 GLOBAL MODELS (initially empty)
+# summarizer = None
+# whisper_model = None
+
+
+# # ✅ LOAD MODELS ONLY WHEN NEEDED
+# def load_models():
+#     global summarizer, whisper_model
+
+#     if summarizer is None:
+#         from transformers import pipeline
+#         summarizer = pipeline("summarization", model="t5-small")
+
+#     if whisper_model is None:
+#         import whisper
+#         whisper_model = whisper.load_model("tiny")  # lightweight
+
+
+# # 🔹 Split long text
+# def chunk_text(text, max_len=500):
+#     return [text[i:i+max_len] for i in range(0, len(text), max_len)]
+
+
+# # ✅ MAIN FUNCTION
+# def summarize_text(req):
+#     load_models()  # 🔥 MUST
+
+#     text = req.transcript
+
+#     # -------------------------------
+#     # 1️⃣ VIDEO → TEXT
+#     # -------------------------------
+#     if req.video_url:
+#         try:
+#             if not os.path.exists(req.video_url):
+#                 return {"summary": "Invalid video file path"}
+
+#             result = whisper_model.transcribe(req.video_url)
+#             text = result["text"]
+
+#         except Exception as e:
+#             return {"summary": f"Whisper error: {str(e)}"}
+
+#     # -------------------------------
+#     # 2️⃣ VALIDATION
+#     # -------------------------------
+#     if not text or len(text.strip()) == 0:
+#         return {"summary": "No input provided"}
+
+#     # -------------------------------
+#     # 3️⃣ CHUNKING
+#     # -------------------------------
+#     chunks = chunk_text(text)
+
+#     summaries = []
+
+#     for chunk in chunks:
+#         try:
+#             result = summarizer(
+#                 chunk,
+#                 max_length=100,
+#                 min_length=30,
+#                 do_sample=False
+#             )
+#             summaries.append(result[0]['summary_text'])
+#         except Exception:
+#             continue
+
+#     # -------------------------------
+#     # 4️⃣ FINAL SUMMARY
+#     # -------------------------------
+#     final_summary = " ".join(summaries)
+
+#     sentences = final_summary.split(".")
+#     final_summary = ". ".join(sentences[:5]).strip()
+
+#     return {"summary": final_summary}
+
+import requests
 import os
 
-# 🔴 GLOBAL MODELS (initially empty)
-summarizer = None
-whisper_model = None
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
+
+headers = {
+    "Authorization": f"Bearer {HF_TOKEN}"
+}
 
 
-# ✅ LOAD MODELS ONLY WHEN NEEDED
-def load_models():
-    global summarizer, whisper_model
-
-    if summarizer is None:
-        from transformers import pipeline
-        summarizer = pipeline("summarization", model="t5-small")
-
-    if whisper_model is None:
-        import whisper
-        whisper_model = whisper.load_model("tiny")  # lightweight
-
-
-# 🔹 Split long text
-def chunk_text(text, max_len=500):
-    return [text[i:i+max_len] for i in range(0, len(text), max_len)]
-
-
-# ✅ MAIN FUNCTION
 def summarize_text(req):
-    load_models()  # 🔥 MUST
-
     text = req.transcript
 
-    # -------------------------------
-    # 1️⃣ VIDEO → TEXT
-    # -------------------------------
-    if req.video_url:
-        try:
-            if not os.path.exists(req.video_url):
-                return {"summary": "Invalid video file path"}
-
-            result = whisper_model.transcribe(req.video_url)
-            text = result["text"]
-
-        except Exception as e:
-            return {"summary": f"Whisper error: {str(e)}"}
-
-    # -------------------------------
-    # 2️⃣ VALIDATION
-    # -------------------------------
     if not text or len(text.strip()) == 0:
         return {"summary": "No input provided"}
 
-    # -------------------------------
-    # 3️⃣ CHUNKING
-    # -------------------------------
-    chunks = chunk_text(text)
+    try:
+        response = requests.post(
+            API_URL,
+            headers=headers,
+            json={"inputs": text[:1000]}  # limit size
+        )
 
-    summaries = []
+        result = response.json()
 
-    for chunk in chunks:
-        try:
-            result = summarizer(
-                chunk,
-                max_length=100,
-                min_length=30,
-                do_sample=False
-            )
-            summaries.append(result[0]['summary_text'])
-        except Exception:
-            continue
+        # Handle loading case
+        if isinstance(result, dict) and "error" in result:
+            return {"summary": "Model is loading, try again in few seconds"}
 
-    # -------------------------------
-    # 4️⃣ FINAL SUMMARY
-    # -------------------------------
-    final_summary = " ".join(summaries)
+        summary = result[0]["summary_text"]
 
-    sentences = final_summary.split(".")
-    final_summary = ". ".join(sentences[:5]).strip()
+        return {"summary": summary}
 
-    return {"summary": final_summary}
+    except Exception as e:
+        return {"summary": f"Error: {str(e)}"}
