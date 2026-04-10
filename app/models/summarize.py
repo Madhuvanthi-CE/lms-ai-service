@@ -263,7 +263,7 @@ import os
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-API_URL = "https://api-inference.huggingface.co/models/sshleifer/distilbart-cnn-12-6"
+API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-small"
 
 headers = {
     "Authorization": f"Bearer {HF_TOKEN}"
@@ -275,11 +275,13 @@ def summarize_text(req):
     if not text:
         return {"summary": "No input provided"}
 
+    prompt = f"summarize: {text}"
+
     for _ in range(3):
         response = requests.post(
             API_URL,
             headers=headers,
-            json={"inputs": text[:1000]}
+            json={"inputs": prompt[:1000]}
         )
 
         result = response.json()
@@ -288,6 +290,6 @@ def summarize_text(req):
             time.sleep(5)
             continue
 
-        return {"summary": result[0]["summary_text"]}
+        return {"summary": result[0]["generated_text"]}
 
     return {"summary": "Model busy, try again"}
