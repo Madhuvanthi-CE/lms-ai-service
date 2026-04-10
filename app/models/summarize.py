@@ -262,8 +262,7 @@ import os
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
-
+API_URL = "https://api-inference.huggingface.co/models/sshleifer/distilbart-cnn-12-6"
 headers = {
     "Authorization": f"Bearer {HF_TOKEN}"
 }
