@@ -258,38 +258,36 @@
 #     return {"summary": final_summary}
 
 import requests
+import time
 import os
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 API_URL = "https://api-inference.huggingface.co/models/sshleifer/distilbart-cnn-12-6"
+
 headers = {
     "Authorization": f"Bearer {HF_TOKEN}"
 }
 
-
 def summarize_text(req):
     text = req.transcript
 
-    if not text or len(text.strip()) == 0:
+    if not text:
         return {"summary": "No input provided"}
 
-    try:
+    for _ in range(3):
         response = requests.post(
             API_URL,
             headers=headers,
-            json={"inputs": text[:1000]}  # limit size
+            json={"inputs": text[:1000]}
         )
 
         result = response.json()
 
-        # Handle loading case
         if isinstance(result, dict) and "error" in result:
-            return {"summary": "Model is loading, try again in few seconds"}
+            time.sleep(5)
+            continue
 
-        summary = result[0]["summary_text"]
+        return {"summary": result[0]["summary_text"]}
 
-        return {"summary": summary}
-
-    except Exception as e:
-        return {"summary": f"Error: {str(e)}"}
+    return {"summary": "Model busy, try again"}
