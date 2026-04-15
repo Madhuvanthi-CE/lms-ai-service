@@ -257,69 +257,41 @@
 
 #     return {"summary": final_summary}
 
-from transformers import pipeline
-import whisper
+
+import requests
 import os
+import time
 
-# Load models
-summarizer = pipeline("summarization", model="t5-small")
-whisper_model = whisper.load_model("base")
+HF_TOKEN = os.getenv("HF_TOKEN")
 
+API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-small"
 
-# 🔹 Split long text into chunks
-def chunk_text(text, max_len=500):
-    return [text[i:i+max_len] for i in range(0, len(text), max_len)]
+headers = {
+    "Authorization": f"Bearer {HF_TOKEN}"
+}
 
 
 def summarize_text(req):
     text = req.transcript
 
-    # -------------------------------
-    # 1️⃣ VIDEO → TEXT (WHISPER)
-    # -------------------------------
-    if req.video_url:
-        try:
-            if not os.path.exists(req.video_url):
-                return {"summary": "Invalid video file path"}
-
-            result = whisper_model.transcribe(req.video_url)
-            text = result["text"]
-
-        except Exception as e:
-            return {"summary": f"Whisper error: {str(e)}"}
-
-    # -------------------------------
-    # 2️⃣ VALIDATION
-    # -------------------------------
-    if not text or len(text.strip()) == 0:
+    if not text:
         return {"summary": "No input provided"}
 
-    # -------------------------------
-    # 3️⃣ CHUNKING (IMPORTANT)
-    # -------------------------------
-    chunks = chunk_text(text)
+    prompt = f"summarize: {text}"
 
-    summaries = []
+    for _ in range(3):
+        response = requests.post(
+            API_URL,
+            headers=headers,
+            json={"inputs": prompt[:1000]}
+        )
 
-    for chunk in chunks:
-        try:
-            result = summarizer(
-                chunk,
-                max_length=100,
-                min_length=30,
-                do_sample=False
-            )
-            summaries.append(result[0]['summary_text'])
-        except:
+        result = response.json()
+
+        if isinstance(result, dict) and "error" in result:
+            time.sleep(5)
             continue
 
-    # -------------------------------
-    # 4️⃣ FINAL SUMMARY
-    # -------------------------------
-    final_summary = " ".join(summaries)
+        return {"summary": result[0]["generated_text"]}
 
-    # Keep only ~3–5 sentences
-    sentences = final_summary.split(".")
-    final_summary = ". ".join(sentences[:5]).strip()
-
-    return {"summary": final_summary}
+    return {"summary": "Model busy, try again"}
