@@ -182,15 +182,15 @@ def recommend(req: RecommendRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# -------------------------------
-# T2 – SUMMARIZE
-# -------------------------------
-@app.post("/summarize", response_model=SummarizeResponse)
-def summarize(req: SummarizeRequest):
-    try:
-        return summarize_text(req)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# # -------------------------------
+# # T2 – SUMMARIZE
+# # -------------------------------
+# @app.post("/summarize", response_model=SummarizeResponse)
+# def summarize(req: SummarizeRequest):
+#     try:
+#         return summarize_text(req)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
 # -------------------------------
